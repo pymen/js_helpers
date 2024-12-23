@@ -1,5 +1,5 @@
 
-function buildLink({ url, text, className = "", new_page = true}){
+function buildLink({ url, text, className = "", id = "", new_page = true}){
     // Create the button
     const $button = $('<a></a>')
         .attr('href', url)
@@ -16,6 +16,10 @@ function buildLink({ url, text, className = "", new_page = true}){
     if (className) {
         $button.addClass(className);
     }
+    if (id) {
+        $button.attr('id', id); // Add the ID if provided
+    }
+
     return $button
 }
 
@@ -65,7 +69,11 @@ const observerCallback = function (mutationsList, observer, config) {
 
                         // Perform actions on the container using the unified utility
                         if (configItem.do) {
-                            processOperation(container, configItem.do);
+                            // If `do` is an array, iterate over each operation
+                            const operations = Array.isArray(configItem.do) ? configItem.do : [configItem.do];
+                            operations.forEach((operation) => {
+                                processOperation(container, operation);
+                            });
                         }
                     });
                 }
