@@ -23,68 +23,52 @@ function buildLink({ url, text, className = "", id = "", new_page = true}){
     return $button
 }
 
+const processOperation = ({ element, action, params }) => {
+    let rv;
+    console.log(`Element ${element}, action ${action}, params ${params}`);
+    const NEW_ACTIONS = ['$', 'closest', 'find']
 
-function addButtonToContainer({ $button, new_page = true, prepend = true, container_selector }) {
-    // Validate the container selector
-    const $container = $(container_selector);
-    if ($container.length === 0) {
-        console.error(`Container not found for selector: ${container_selector}`);
-        return;
-    }
-
-    // Add the button to the container
-    if (prepend) {
-        $container.prepend($button);
+    if (element && typeof element[action] === 'function') {
+        rv = element[action](params);
+    } else if (typeof window[action] === 'function') {
+        rv = window[action](params)
     } else {
-        $container.append($button);
+        console.error(`Unsupported configuration:`, action)
+        return null
     }
-    return $button
+
+    if (NEW_ACTIONS.includes(action)) {
+    	return (rv || element);
+    } else {
+        return element;
+    }
+
+};
+
+
+const process_config = function(config){
+	let param_dict, element;
+    config.forEach((configItem) => {
+		param_dict = {
+	    	'action': configItem['action'],
+	    	'params': configItem['params'],
+	    	'element': element
+	    }
+    	element = processOperation(param_dict);
+	});
 }
 
 
-const processOperation = (element, config) => {
-    if (config.method && typeof element[config.method] === 'function') {
-        return element[config.method](config.params);
-    } else if (config.func && typeof config.func === 'function') {
-        return config.func(element);
-    } else {
-        console.error(`Unsupported configuration:`, config);
-        return null;
-    }
-};
 
-// The observer callback function
 const observerCallback = function (mutationsList, observer, config) {
+	observer.disconnect();
+
     mutationsList.forEach((mutation) => {
         if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            config.forEach((configItem) => {
-                const elements = $(configItem.selector);
-                if (elements.length > 0) {
-                    elements.each(function (index, value) {
-                        const el = $(value);
-
-                        // Determine the container using the unified utility
-                        const container = configItem.find ? processOperation(el, configItem.find) : el;
-                        if (!container) return; // Skip if no valid container found
-
-                        // Perform actions on the container using the unified utility
-                        if (configItem.do) {
-                            // If `do` is an array, iterate over each operation
-                            const operations = Array.isArray(configItem.do) ? configItem.do : [configItem.do];
-                            operations.forEach((operation) => {
-                                processOperation(container, operation);
-                            });
-                        }
-                    });
-                }
-            });
+            observer.disconnect(); // Stop observing after the first iteration
+            process_config(config)
         }
     });
-};
-
-
-const runObserverImmediately = function(config) {
-    observerCallback([], null, config); // Immediately run callback for existing elements
 };
 
 
@@ -93,7 +77,7 @@ const observe = (target, config) => {
     observerInstance.observe(target, {childList: true, subtree: true})
 
     // Immediately run the observer callback for existing elements
-    runObserverImmediately(config)
+    observerCallback([], null, config);
 }
 
 const getMainDomain = function (){
@@ -107,5 +91,6 @@ window.Helpers = {
     addButtonToContainer,
     buildLink,
     getMainDomain,
-    observe
+    observe,
+    process_config
 };
