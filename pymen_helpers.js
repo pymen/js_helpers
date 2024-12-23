@@ -1,4 +1,4 @@
-function addButtonToContainer({ url, text, new_page = true, prepend = true, container_selector }) {
+function addButtonToContainer({ url, text, className = "", new_page = true, prepend = true, container_selector }) {
     // Validate the container selector
     const $container = $(container_selector);
     if ($container.length === 0) {
@@ -19,6 +19,11 @@ function addButtonToContainer({ url, text, new_page = true, prepend = true, cont
         });
     }
 
+    if (className) {
+        $button.addClass(className);
+    }
+
+
     // Add the button to the container
     if (prepend) {
         $container.prepend($button);
@@ -29,9 +34,59 @@ function addButtonToContainer({ url, text, new_page = true, prepend = true, cont
 }
 
 
+const processOperation = (element, config) => {
+    if (config.method && typeof element[config.method] === 'function') {
+        return element[config.method](config.params);
+    } else if (config.func && typeof config.func === 'function') {
+        return config.func(element);
+    } else {
+        console.error(`Unsupported configuration:`, config);
+        return null;
+    }
+};
+
+// The observer callback function
+const observerCallback = function (mutationsList, observer, config) {
+    mutationsList.forEach((mutation) => {
+        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+            config.forEach((configItem) => {
+                const elements = $(configItem.selector);
+                if (elements.length > 0) {
+                    elements.each(function (index, value) {
+                        const el = $(value);
+
+                        // Determine the container using the unified utility
+                        const container = configItem.find ? processOperation(el, configItem.find) : el;
+                        if (!container) return; // Skip if no valid container found
+
+                        // Perform actions on the container using the unified utility
+                        if (configItem.do) {
+                            processOperation(container, configItem.do);
+                        }
+                    });
+                }
+            });
+        }
+    });
+};
+
+
+const runObserverImmediately = function(config) {
+    observerCallback([], null, config); // Immediately run callback for existing elements
+};
+
+
+const observe = (target, config) => {
+    const observerInstance = new MutationObserver((mutationsList, observer) => observerCallback(mutationsList, observer, config))
+    observerInstance.observe(target, {childList: true, subtree: true})
+
+    // Immediately run the observer callback for existing elements
+    runObserverImmediately(config)
+}
+
 
 // Make functions available in the global namespace or under a specific object
 window.Helpers = {
     addButtonToContainer,
-    // Add more helper functions here as needed
+    observe
 };
