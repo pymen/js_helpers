@@ -88,10 +88,16 @@ const observe = (target, config) => {
     runObserverImmediately(config)
 }
 
+const getMainDomain = function (){
+    const hostnameParts = window.location.hostname.split('.');
+    return hostnameParts.slice(-2).join('.');
+}
+
 
 // Make functions available in the global namespace or under a specific object
 window.Helpers = {
     addButtonToContainer,
     buildLink,
+    getMainDomain,
     observe
 };
