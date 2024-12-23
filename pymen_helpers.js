@@ -1,11 +1,5 @@
-function addButtonToContainer({ url, text, className = "", new_page = true, prepend = true, container_selector }) {
-    // Validate the container selector
-    const $container = $(container_selector);
-    if ($container.length === 0) {
-        console.error(`Container not found for selector: ${container_selector}`);
-        return;
-    }
 
+function buildLink({ url, text, className = "", new_page = true}){
     // Create the button
     const $button = $('<a></a>')
         .attr('href', url)
@@ -22,7 +16,17 @@ function addButtonToContainer({ url, text, className = "", new_page = true, prep
     if (className) {
         $button.addClass(className);
     }
+    return $button
+}
 
+
+function addButtonToContainer({ $button, new_page = true, prepend = true, container_selector }) {
+    // Validate the container selector
+    const $container = $(container_selector);
+    if ($container.length === 0) {
+        console.error(`Container not found for selector: ${container_selector}`);
+        return;
+    }
 
     // Add the button to the container
     if (prepend) {
@@ -88,5 +92,6 @@ const observe = (target, config) => {
 // Make functions available in the global namespace or under a specific object
 window.Helpers = {
     addButtonToContainer,
+    buildLink,
     observe
 };
