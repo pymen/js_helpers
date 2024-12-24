@@ -86,7 +86,7 @@ const getMainDomain = function (){
 }
 
 
-function wait_page_for_load(func_to_run, time_to_wait = 1000) {
+function wait_page_for_load(func_to_run, params, time_to_wait = 1000) {
 	let debounceTimer;
 
 	// Callback function for MutationObserver
@@ -97,7 +97,7 @@ function wait_page_for_load(func_to_run, time_to_wait = 1000) {
 		// Set a new timer to trigger the user function after the quiet period
 		debounceTimer = setTimeout(() => {
 			observer.disconnect(); // Stop observing once the function is triggered
-			func_to_run(); // Execute the user-provided function
+			func_to_run(params); // Execute the user-provided function
 		}, time_to_wait);
 	};
 
@@ -110,10 +110,10 @@ function wait_page_for_load(func_to_run, time_to_wait = 1000) {
 	console.log('MutationObserver initialized, waiting for page to load...');
 }
 
-function on_page_load(func_to_run, time_to_wait = 1000) {
+function on_page_load(func_to_run, params, time_to_wait = 1000) {
 	$(document).ready(function () {
 		console.log('Document is ready!')
-		wait_page_for_load(func_to_run, time_to_wait);
+		wait_page_for_load(func_to_run, params, time_to_wait);
 	});
 }
 
