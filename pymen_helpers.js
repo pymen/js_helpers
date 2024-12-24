@@ -1,35 +1,34 @@
-
-function buildLink({ url, text, className = "", id = "", new_page = true}){
+function buildLink({url, text, className = "", id = "", new_page = true}) {
     // Create the button
     const $button = $('<a></a>')
         .attr('href', url)
-        .text(text);
+        .text(text)
 
     // Set to open in a new page if new_page is true
     if (new_page) {
         $button.attr({
             target: "_blank",
             rel: "noopener noreferrer" // For security
-        });
+        })
     }
 
     if (className) {
-        $button.addClass(className);
+        $button.addClass(className)
     }
     if (id) {
-        $button.attr('id', id); // Add the ID if provided
+        $button.attr('id', id) // Add the ID if provided
     }
 
     return $button
 }
 
-const processOperation = ({ element, action, params }) => {
-    let rv;
-    console.log(`Element ${element}, action ${action}, params ${params}`);
+const processOperation = ({element, action, params}) => {
+    let rv
+    console.log(`Element ${element}, action ${action}, params ${params}`)
     const NEW_ACTIONS = ['$', 'closest', 'find']
 
     if (element && typeof element[action] === 'function') {
-        rv = element[action](params);
+        rv = element[action](params)
     } else if (typeof window[action] === 'function') {
         rv = window[action](params)
     } else {
@@ -38,38 +37,37 @@ const processOperation = ({ element, action, params }) => {
     }
 
     if (NEW_ACTIONS.includes(action)) {
-    	return (rv || element);
+        return (rv || element)
     } else {
-        return element;
+        return element
     }
 
-};
-
-
-const process_config = function(config){
-	let param_dict, element;
-    config.forEach((configItem) => {
-		param_dict = {
-	    	'action': configItem['action'],
-	    	'params': configItem['params'],
-	    	'element': element
-	    }
-    	element = processOperation(param_dict);
-	});
 }
 
 
+const process_config = function (config) {
+    let param_dict, element
+    config.forEach((configItem) => {
+        param_dict = {
+            'action': configItem['action'],
+            'params': configItem['params'],
+            'element': element
+        }
+        element = processOperation(param_dict)
+    })
+}
+
 
 const observerCallback = function (mutationsList, observer, config) {
-	observer.disconnect();
+    observer.disconnect()
 
     mutationsList.forEach((mutation) => {
         if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            observer.disconnect(); // Stop observing after the first iteration
+            observer.disconnect() // Stop observing after the first iteration
             process_config(config)
         }
-    });
-};
+    })
+}
 
 
 const observe = (target, config) => {
@@ -77,44 +75,44 @@ const observe = (target, config) => {
     observerInstance.observe(target, {childList: true, subtree: true})
 
     // Immediately run the observer callback for existing elements
-    observerCallback([], null, config);
+    observerCallback([], null, config)
 }
 
-const getMainDomain = function (){
-    const hostnameParts = window.location.hostname.split('.');
-    return hostnameParts.slice(-2).join('.');
+const getMainDomain = function () {
+    const hostnameParts = window.location.hostname.split('.')
+    return hostnameParts.slice(-2).join('.')
 }
 
 
 function wait_page_for_load(func_to_run, params, time_to_wait = 1000) {
-	let debounceTimer;
+    let debounceTimer
 
-	// Callback function for MutationObserver
-	const observerCallback = function () {
-		// Clear the previous debounce timer
-		clearTimeout(debounceTimer);
+    // Callback function for MutationObserver
+    const observerCallback = function () {
+        // Clear the previous debounce timer
+        clearTimeout(debounceTimer)
 
-		// Set a new timer to trigger the user function after the quiet period
-		debounceTimer = setTimeout(() => {
-			observer.disconnect(); // Stop observing once the function is triggered
-			func_to_run(params); // Execute the user-provided function
-		}, time_to_wait);
-	};
+        // Set a new timer to trigger the user function after the quiet period
+        debounceTimer = setTimeout(() => {
+            observer.disconnect() // Stop observing once the function is triggered
+            func_to_run(params) // Execute the user-provided function
+        }, time_to_wait)
+    }
 
-	// Create and initialize the MutationObserver
-	const observer = new MutationObserver(observerCallback);
+    // Create and initialize the MutationObserver
+    const observer = new MutationObserver(observerCallback)
 
-	// Start observing the document body for changes
-	observer.observe(document.body, { childList: true, subtree: true });
+    // Start observing the document body for changes
+    observer.observe(document.body, {childList: true, subtree: true})
 
-	console.log('MutationObserver initialized, waiting for page to load...');
+    console.log('MutationObserver initialized, waiting for page to load...')
 }
 
 function on_page_load(func_to_run, params, time_to_wait = 1000) {
-	$(document).ready(function () {
-		console.log('Document is ready!')
-		wait_page_for_load(func_to_run, params, time_to_wait);
-	});
+    $(document).ready(function () {
+        console.log('Document is ready!')
+        wait_page_for_load(func_to_run, params, time_to_wait)
+    })
 }
 
 function process_config_on_page_load(config, time_to_wait = 1000) {
@@ -130,4 +128,4 @@ window.Helpers = {
     process_config,
     on_page_load,
     process_config_on_page_load
-};
+}
