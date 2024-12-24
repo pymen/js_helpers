@@ -86,10 +86,44 @@ const getMainDomain = function (){
 }
 
 
+function wait_page_for_load(func_to_run, time_to_wait = 1000) {
+	let debounceTimer;
+
+	// Callback function for MutationObserver
+	const observerCallback = function () {
+		// Clear the previous debounce timer
+		clearTimeout(debounceTimer);
+
+		// Set a new timer to trigger the user function after the quiet period
+		debounceTimer = setTimeout(() => {
+			observer.disconnect(); // Stop observing once the function is triggered
+			func_to_run(); // Execute the user-provided function
+		}, time_to_wait);
+	};
+
+	// Create and initialize the MutationObserver
+	const observer = new MutationObserver(observerCallback);
+
+	// Start observing the document body for changes
+	observer.observe(document.body, { childList: true, subtree: true });
+
+	console.log('MutationObserver initialized, waiting for page to load...');
+}
+
+function on_page_load(func_to_run, time_to_wait = 1000) {
+	$(document).ready(function () {
+		console.log('Document is ready!')
+		wait_page_for_load(func_to_run, time_to_wait);
+	});
+}
+
+
+
 // Make functions available in the global namespace or under a specific object
 window.Helpers = {
     buildLink,
     getMainDomain,
     observe,
-    process_config
+    process_config,
+    on_page_load
 };
