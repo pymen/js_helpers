@@ -58,26 +58,6 @@ const process_config = function (config) {
 }
 
 
-const observerCallback = function (mutationsList, observer, config) {
-    observer.disconnect()
-
-    mutationsList.forEach((mutation) => {
-        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            observer.disconnect() // Stop observing after the first iteration
-            process_config(config)
-        }
-    })
-}
-
-
-const observe = (target, config) => {
-    const observerInstance = new MutationObserver((mutationsList, observer) => observerCallback(mutationsList, observer, config))
-    observerInstance.observe(target, {childList: true, subtree: true})
-
-    // Immediately run the observer callback for existing elements
-    observerCallback([], null, config)
-}
-
 const getMainDomain = function () {
     const hostnameParts = window.location.hostname.split('.')
     return hostnameParts.slice(-2).join('.')
@@ -124,7 +104,6 @@ function process_config_on_page_load(config, time_to_wait = 1000) {
 window.Helpers = {
     buildLink,
     getMainDomain,
-    observe,
     process_config,
     on_page_load,
     process_config_on_page_load
