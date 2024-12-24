@@ -63,9 +63,4 @@ const CONFIG = [
 ];
 
 
-function start(){
-	process_config(CONFIG)
-
-}
-
-setTimeout(start, 1000);
+process_config_on_page_load(CONFIG, 500)
