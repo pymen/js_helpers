@@ -100,11 +100,49 @@ function process_config_on_page_load(config, time_to_wait = 1000) {
 }
 
 
+parseJWT = function (token) {
+    try {
+        // JWT has three parts separated by dots: header.payload.signature
+        const parts = token.split('.')
+        if (parts.length !== 3) {
+            console.error('Invalid JWT format')
+            return null
+        }
+
+        // Base64 URL decode the payload
+        const base64Payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(
+            atob(base64Payload)
+                .split('')
+                .map((char) => '%' + ('00' + char.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        )
+
+        return JSON.parse(jsonPayload)
+    } catch (e) {
+        console.error('Error parsing JWT:', e)
+        return null
+    }
+}
+
+getCookie = function (name) {
+    const cookies = document.cookie.split('; ')
+    for (const cookie of cookies) {
+        const [key, value] = cookie.split('=')
+        if (key === name) {
+            return decodeURIComponent(value)
+        }
+    }
+    return null // Return null if the cookie is not found
+}
+
 // Make functions available in the global namespace or under a specific object
 window.Helpers = {
     buildLink,
     getMainDomain,
     process_config,
     on_page_load,
-    process_config_on_page_load
+    process_config_on_page_load,
+    parseJWT,
+    getCookie,
 }
