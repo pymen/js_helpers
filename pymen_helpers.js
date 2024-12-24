@@ -117,6 +117,9 @@ function on_page_load(func_to_run, params, time_to_wait = 1000) {
 	});
 }
 
+function process_config_on_page_load(config, time_to_wait = 1000) {
+    on_page_load(process_config, config, time_to_wait)
+}
 
 
 // Make functions available in the global namespace or under a specific object
@@ -125,5 +128,6 @@ window.Helpers = {
     getMainDomain,
     observe,
     process_config,
-    on_page_load
+    on_page_load,
+    process_config_on_page_load
 };
